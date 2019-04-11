@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:pomodoro/Activity.dart';
 import 'package:pomodoro/Wave/Wave.dart';
 
 class StartedActivity extends StatefulWidget {
-  StartedActivity(Activity activity) {
-    this.activity = activity;
+  StartedActivity(String title, int duration) {
+    this.activity = new Activity(title, duration,
+        DateFormat('yyyy-MM-dd – kk:mm').format(DateTime.now()), true);
   }
 
   Activity activity;
@@ -34,7 +36,7 @@ class _StartedActivityState extends State<StartedActivity>
                 Navigator.of(context).pop(widget.activity);
               } else {
                 // TODO set secondsRemains--
-                secondsRemains = secondsRemains - 30;
+                secondsRemains = secondsRemains - 300;
               }
             }));
   }
@@ -74,7 +76,11 @@ class _StartedActivityState extends State<StartedActivity>
                   Navigator.of(context).pop(); // close alert
                   await Future.delayed(
                       Duration(milliseconds: 100)); // make it smoother
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(new Activity(
+                      widget.activity.title,
+                      widget.activity.duration - secondsRemains ~/ 60,
+                      widget.activity.startedAt,
+                      secondsRemains == 0));
                 }),
           ],
         );

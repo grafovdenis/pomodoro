@@ -105,10 +105,11 @@ class _HomePageState extends State<HomePage> {
     // Navigator.push returns a Future that will complete after we call
     // Navigator.pop on the Selection Screen!
     final result = await Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => StartedActivity(new Activity(
+        builder: (context) => StartedActivity(
             (_title == "") ? "Random activiy" : _title,
-            _sliderValue.toInt()))));
+            _sliderValue.toInt())));
 
+    // Back from StartedActivity
     if (result != null)
       setState(() {
         activities.add(result);
@@ -157,7 +158,7 @@ class _HomePageState extends State<HomePage> {
 
     if (value.toString() != "[]") {
       for (Map<String, dynamic> el in value) {
-        result.add(Activity(el['title'], el['duration']));
+        result.add(Activity(el['title'], el['duration'], el['startedAt'], el['completed']));
       }
     }
     print("Read $value");
@@ -169,21 +170,9 @@ class _HomePageState extends State<HomePage> {
   _save() async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'activities';
-    final value = _jsonEncode(activities);
+    final value =
+        jsonEncode(activities.map((activity) => activity.toJson()).toList());
     prefs.setString(key, value);
     print("Saved $value");
-  }
-
-  String _jsonEncode(List<Activity> list) {
-    String result = "";
-    if (list.isEmpty) return "[]";
-
-    result += "[";
-    for (Activity el in list) {
-      result += "{\"title\":\"${el.title}\",\"duration\":${el.duration}},";
-    }
-    result = result.substring(0, result.length - 1);
-    result += "]";
-    return result;
   }
 }
