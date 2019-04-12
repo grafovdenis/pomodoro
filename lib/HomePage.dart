@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pomodoro/Activity.dart';
 import 'package:pomodoro/ActivityWidget.dart';
 import 'package:pomodoro/StartedActivity.dart';
@@ -20,6 +21,46 @@ class _HomePageState extends State<HomePage> {
   var _controller = PageController(initialPage: 0, keepPage: false);
   String _title = "Random activity";
   double _sliderValue = 30;
+
+  static const platform = const MethodChannel('grafa.pomodoro/calendar');
+
+  Future<void> _addCalendarEvent(String event) async {
+    try {
+      await platform.invokeMethod("insertToCalendar", {"event": event});
+    } on PlatformException catch (e) {
+      print(e.message);
+    }
+  }
+
+  void _showDialog(String event) async {
+    Future.delayed(Duration(milliseconds: 100)); // make it smoother
+    showDialog(
+      context: context,
+      builder: (context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Add to calendar?"),
+          content: new Text("The calendar will open as new page."),
+          actions: <Widget>[
+            new FlatButton(
+                child: new Text("Cancel"),
+                onPressed: () {
+                  Navigator.of(context).pop(); // close alert
+                }),
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+                child: new Text("Add"),
+                onPressed: () async {
+                  Future.delayed(
+                      Duration(milliseconds: 100)); // make it smoother
+                  _addCalendarEvent(event);
+                  Navigator.of(context).pop();
+                }),
+          ],
+        );
+      },
+    );
+  }
 
   Widget activitiesPage() {
     return Scaffold(
@@ -104,15 +145,16 @@ class _HomePageState extends State<HomePage> {
   _navigateAndDisplaySelection(BuildContext context) async {
     // Navigator.push returns a Future that will complete after we call
     // Navigator.pop on the Selection Screen!
-    final result = await Navigator.of(context).push(MaterialPageRoute(
+    final Activity result = await Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => StartedActivity(
-            (_title == "") ? "Random activiy" : _title,
-            _sliderValue.toInt())));
+            (_title == "") ? "Done something" : _title, _sliderValue.toInt())));
 
     // Back from StartedActivity
     if (result != null)
       setState(() {
         activities.add(result);
+        String event = result.toString();
+        _showDialog(event);
         Future.delayed(Duration(milliseconds: 1000)); // make it smoother
         _controller.animateToPage(1,
             duration: Duration(milliseconds: 1000), curve: Curves.ease);
@@ -158,7 +200,8 @@ class _HomePageState extends State<HomePage> {
 
     if (value.toString() != "[]") {
       for (Map<String, dynamic> el in value) {
-        result.add(Activity(el['title'], el['duration'], el['startedAt'], el['completed']));
+        result.add(Activity(
+            el['title'], el['duration'], el['startedAt'], el['completed']));
       }
     }
     print("Read $value");
