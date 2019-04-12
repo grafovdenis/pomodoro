@@ -17,4 +17,7 @@ class Activity {
         'startedAt': startedAt,
         'completed': completed
       };
+
+  String toString() =>
+      "{\"title\":\"$title\",\"duration\":$duration,\"startedAt\":\"$startedAt\",\"completed\":$completed}";
 }
