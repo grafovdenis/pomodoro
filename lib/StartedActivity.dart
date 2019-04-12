@@ -32,7 +32,6 @@ class _StartedActivityState extends State<StartedActivity>
         (Timer timer) => setState(() {
               if (secondsRemains < 1) {
                 timer.cancel();
-                // TODO if context == alertDialog.context -> pop()
                 Navigator.of(context).pop(widget.activity);
               } else {
                 // TODO set secondsRemains--
@@ -54,38 +53,42 @@ class _StartedActivityState extends State<StartedActivity>
   }
 
   void _showDialog() async {
-    await Future.delayed(Duration(milliseconds: 100)); // make it smoother
-    showDialog(
-      context: context,
-      builder: (context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: new Text("Stop current activity?"),
-          content: new Text("Are you sure you wish to stop current activity?\n"
-              "Your progress will be lost!"),
-          actions: <Widget>[
-            new FlatButton(
-                child: new Text("Cancel"),
-                onPressed: () {
-                  Navigator.of(context).pop(); // close alert
-                }),
-            // usually buttons at the bottom of the dialog
-            new FlatButton(
-                child: new Text("Stop"),
-                onPressed: () async {
-                  Navigator.of(context).pop(); // close alert
-                  await Future.delayed(
-                      Duration(milliseconds: 100)); // make it smoother
-                  Navigator.of(context).pop(new Activity(
-                      widget.activity.title,
-                      widget.activity.duration - secondsRemains ~/ 60,
-                      widget.activity.startedAt,
-                      secondsRemains == 0));
-                }),
-          ],
-        );
-      },
-    );
+    if (secondsRemains != 0) {
+      await Future.delayed(Duration(milliseconds: 100)); // make it smoother
+      showDialog(
+        context: context,
+        builder: (context) {
+          // return object of type Dialog
+          return AlertDialog(
+            title: new Text("Stop current activity?"),
+            content:
+                new Text("Are you sure you wish to stop current activity?\n"
+                    "Your progress will be lost!"),
+            actions: <Widget>[
+              new FlatButton(
+                  child: new Text("Cancel"),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // close alert
+                  }),
+              // usually buttons at the bottom of the dialog
+              new FlatButton(
+                  child: new Text("Stop"),
+                  onPressed: () async {
+                    Navigator.of(context).pop(); // close alert
+                    await Future.delayed(
+                        Duration(milliseconds: 100)); // make it smoother
+                    Navigator.of(context).pop(new Activity(
+                        widget.activity.title,
+                        widget.activity.duration - secondsRemains ~/ 60,
+                        widget.activity.startedAt,
+                        false));
+                  }),
+            ],
+          );
+        },
+      );
+    } else
+      Navigator.of(context).pop(widget.activity);
   }
 
   @override
