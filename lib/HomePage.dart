@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pomodoro/About.dart';
 import 'package:pomodoro/Activity.dart';
-import 'package:pomodoro/ActivityWidget.dart';
 import 'package:pomodoro/StartedActivity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   List<Activity> activities;
-  var _controller = PageController(initialPage: 0, keepPage: false);
+  static var _controller = PageController(initialPage: 0, keepPage: false);
   String _title = "Random activity";
   double _sliderValue = 30;
 
@@ -31,6 +31,15 @@ class _HomePageState extends State<HomePage> {
       print(e.message);
     }
   }
+
+  Widget bottomButton(context) => FloatingActionButton(
+        tooltip: 'New Activity',
+        child: Text("?", textScaleFactor: 2),
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => About()));
+        },
+      );
 
   void _showDialog(String event) async {
     Future.delayed(Duration(milliseconds: 100)); // make it smoother
@@ -75,23 +84,45 @@ class _HomePageState extends State<HomePage> {
                 : ListView.builder(
                     itemCount: activities.length,
                     itemBuilder: (BuildContext context, int index) {
-                      return ActivityWidget(
-                          activities[index].title, activities[index].duration);
+                      final item = activities[index];
+                      return Container(
+                        child: Dismissible(
+                          child: Card(
+                            child: ListTile(
+                              leading: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: item.completed
+                                    ? Icon(Icons.check_circle_outline)
+                                    : Icon(Icons.radio_button_unchecked),
+                              ),
+                              title: Text(item.title),
+                              subtitle: Text("${item.duration} minutes"),
+                              onTap: (() {}),
+                            ),
+                          ),
+                          background: Container(
+                              child: Icon(Icons.delete), color: Colors.red[300]),
+                          key: Key(item.toString()),
+                          onDismissed: (direction) {
+                            setState(() {
+                              activities.removeAt(index);
+                              _save();
+                              Future.delayed(Duration(milliseconds: 1000));
+                              _read();
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Text("${item.title} dismissed")));
+                            });
+                          },
+                        ),
+                      );
                     },
                   )),
-        floatingActionButton: FloatingActionButton(
-          tooltip: 'New Activity',
-          child: Icon(Icons.add),
-          onPressed: () {
-            _controller.animateToPage(0,
-                duration: Duration(milliseconds: 500), curve: Curves.ease);
-          },
-        ));
+        floatingActionButton: bottomButton(context));
   }
 
   Widget newActivityPage() {
-    double deviceWidth = MediaQuery.of(context).size.width;
-    double deviceHeight = MediaQuery.of(context).size.height;
+    final double deviceWidth = MediaQuery.of(context).size.width;
+    final double deviceHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: Colors.blue,
@@ -117,7 +148,7 @@ class _HomePageState extends State<HomePage> {
             Container(
               width: deviceWidth * 0.8,
               child: Slider(
-                activeColor: Colors.redAccent,
+                activeColor: Colors.blue[200],
                 inactiveColor: Colors.black12,
                 value: _sliderValue,
                 min: 10,

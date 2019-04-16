@@ -93,7 +93,7 @@ class _StartedActivityState extends State<StartedActivity>
 
   @override
   Widget build(BuildContext context) {
-    Size size = new Size(MediaQuery.of(context).size.width, 300.0);
+    final Size size = new Size(MediaQuery.of(context).size.width, 300.0);
     int minutesRemains = secondsRemains ~/ 60;
     double waveHeight = MediaQuery.of(context).size.height *
         (widget.activity.duration * 60 - secondsRemains) /
