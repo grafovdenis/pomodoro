@@ -1,12 +1,7 @@
 package grafa.pomodoro
 
 import android.os.Bundle
-import android.content.Context
-import android.content.ContextWrapper
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import android.icu.util.Calendar
 import android.provider.CalendarContract
 import org.json.JSONObject
