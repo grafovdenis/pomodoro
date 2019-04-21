@@ -6,6 +6,7 @@ import 'package:pomodoro/About.dart';
 import 'package:pomodoro/Activity.dart';
 import 'package:pomodoro/StartedActivity.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class HomePage extends StatefulWidget {
   final String title = "Pomodoro";
@@ -17,12 +18,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const platform = const MethodChannel('grafa.pomodoro/calendar');
+  final FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+
   List<Activity> activities;
   static var _controller = PageController(initialPage: 0, keepPage: false);
   String _title = "Random activity";
-  double _sliderValue = 30;
 
-  static const platform = const MethodChannel('grafa.pomodoro/calendar');
+  double _sliderValue = 30;
 
   Future<void> _addCalendarEvent(String event) async {
     try {
@@ -196,6 +199,22 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _read();
+    _firebaseMessaging.configure(
+        onMessage: (Map<String, dynamic> message) {
+          print('on message $message');
+        },
+        onResume: (Map<String, dynamic> message) {
+          print('on resume $message');
+        },
+        onLaunch: (Map<String, dynamic> message) {
+          print('on launch $message');
+        }
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.getToken().then((token){
+      print(token);
+    });
   }
 
   @override
